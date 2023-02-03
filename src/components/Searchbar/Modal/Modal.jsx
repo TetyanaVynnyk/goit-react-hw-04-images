@@ -1,41 +1,31 @@
-import { Component } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useCallback } from 'react';
 
-import styles from "./modal.module.css";
+import { createPortal } from 'react-dom';
 
-const modalRoot = document.querySelector("#modal-root");
+import styles from './modal.module.css';
 
-class Modal extends Component {
+const modalRoot = document.querySelector('#modal-root');
 
-    componentDidMount() {
-        document.addEventListener("keydown", this.closeModal)
+const Modal = ({ close, children }) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const closeModal = useCallback(({ target, currentTarget, code }) => {
+    if (target === currentTarget || code === 'Escape') {
+      close();
     }
+  });
 
-    componentWillUnmount(){
-        document.removeEventListener("keydown", this.closeModal)
-    }
+  useEffect(() => {
+    document.addEventListener('keydown', closeModal);
 
-    closeModal = ({target, currentTarget, code}) => {
-        if(target === currentTarget || code === "Escape") {
-            this.props.close()
-        }
-    }
+    return () => document.removeEventListener('keydown', closeModal);
+  }, [closeModal]);
 
-    render() {
-        const { children} = this.props;
-        const {closeModal} = this;
-
-        return (
-            createPortal(
-                <div className={styles.overlay} onClick={closeModal}>
-                    <div className={styles.modal}>
-                        {children}
-                    </div>
-                </div>,
-                modalRoot
-            )
-        )
-    }
-}
+  return createPortal(
+    <div className={styles.overlay} onClick={closeModal}>
+      <div className={styles.modal}>{children}</div>
+    </div>,
+    modalRoot
+  );
+};
 
 export default Modal;
